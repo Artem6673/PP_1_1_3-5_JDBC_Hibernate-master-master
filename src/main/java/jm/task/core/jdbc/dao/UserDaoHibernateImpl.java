@@ -6,6 +6,7 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 
+import javax.persistence.TypedQuery;
 import java.util.List;
 
 import static jm.task.core.jdbc.util.Util.getSessionFactory;
@@ -66,12 +67,15 @@ public class UserDaoHibernateImpl implements UserDao {
         Transaction transaction = null;
         User user = new User(name,lastName,age);
         try (Session session = getSessionFactory().openSession()) {
-            session.beginTransaction();
+            transaction = session.beginTransaction();
             session.save(user);
-            session.getTransaction().commit();
+            transaction.commit();
         } catch (Exception e) {
-
             e.printStackTrace();
+            if (transaction != null) {
+                transaction.rollback();
+            }
+
         }
     }
 
@@ -84,7 +88,6 @@ public class UserDaoHibernateImpl implements UserDao {
             transaction = session.beginTransaction();
             user.setId(id);
             session.delete(user);
-            session.clear();
 
             transaction.commit();
         } catch (Exception e) {
@@ -97,7 +100,8 @@ public class UserDaoHibernateImpl implements UserDao {
     @Override
     public List<User> getAllUsers() {
         try (Session session = getSessionFactory().openSession()) {
-            return session.createQuery("from User", User.class).list();
+            TypedQuery<User> query = session.createQuery("FROM User");
+            return query.getResultList();
         }
     }
 
