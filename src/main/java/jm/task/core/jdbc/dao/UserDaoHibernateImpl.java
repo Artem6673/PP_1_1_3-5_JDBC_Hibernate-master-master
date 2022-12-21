@@ -65,7 +65,7 @@ public class UserDaoHibernateImpl implements UserDao {
     @Override
     public void saveUser(String name, String lastName, byte age) {
         Transaction transaction = null;
-        User user = new User(name,lastName,age);
+        User user = new User(name, lastName, age);
         try (Session session = getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
             session.save(user);
@@ -82,14 +82,14 @@ public class UserDaoHibernateImpl implements UserDao {
     @Override
     public void removeUserById(long id) {
         Transaction transaction = null;
-        User user = new User();
+
         try (Session session = getSessionFactory().openSession()) {
-
             transaction = session.beginTransaction();
-            user.setId(id);
-            session.delete(user);
-
+            String hql = "DELETE User WHERE id = :id";
+            Query query = session.createQuery(hql);
+            query.setParameter("id", id).executeUpdate();
             transaction.commit();
+
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
@@ -97,6 +97,7 @@ public class UserDaoHibernateImpl implements UserDao {
             e.printStackTrace();
         }
     }
+
     @Override
     public List<User> getAllUsers() {
         try (Session session = getSessionFactory().openSession()) {
